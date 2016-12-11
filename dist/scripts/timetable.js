@@ -83,6 +83,24 @@ Timetable.Renderer = function(tt) {
 				});
 			} else if (hasExtendFormat()) {
 				newLocations.forEach(function(loc) {
+					if (loc.hasOwnProperty('locations')){
+						if (!locationExistsIn(loc, existingLocations)) {
+							existingLocations.push(loc);
+						} else {
+							throw new Error('Location already exists');
+						}
+						loc.locations.forEach(function(loc2){
+							if (!locationExistsIn(loc2, existingLocations)) {
+								existingLocations.push({
+									id: loc2,
+									title: loc2
+								});
+							} else {
+								throw new Error('Location already exists');
+							}
+						});
+						return;
+					}
 					if (!locationExistsIn(loc, existingLocations)) {
 						existingLocations.push(loc);
 					} else {
@@ -153,6 +171,10 @@ Timetable.Renderer = function(tt) {
 						aNode.appendChild(spanNode);
 					}
 					spanNode.className = 'row-heading';
+					if (timetable.locations[k].hasOwnProperty('locations')){
+						liNode.className = 'row-heading-section';
+					}
+					liNode.title = timetable.locations[k].title;
 					spanNode.textContent = timetable.locations[k].title;
 				}
 			}
@@ -189,6 +211,14 @@ Timetable.Renderer = function(tt) {
 				ulNode.className = 'room-timeline';
 				for (var k=0; k<timetable.locations.length; k++) {
 					var liNode = ulNode.appendChild(document.createElement('li'));
+					if (timetable.locations[k].hasOwnProperty('locations')){
+						liNode.className = 'section';
+						var b = liNode.appendChild(document.createElement('b'));
+						b.className = 'section-title';
+						var span = b.appendChild(document.createElement('span'));
+						span.textContent = timetable.locations[k].title;
+						continue;
+					}
 					appendLocationEvents(timetable.locations[k], liNode);/**/
 				}
 			}
@@ -213,7 +243,12 @@ Timetable.Renderer = function(tt) {
 				var elementType = hasURL ? 'a' : 'span';
 				var aNode = node.appendChild(document.createElement(elementType));
 				var smallNode = aNode.appendChild(document.createElement('small'));
-				aNode.title = event.name;
+				if (hasOptions){
+					aNode.title = event.options.tooltip || event.name;
+				}
+				else{
+					aNode.title = event.name;
+				}
 
 				if (hasURL) {
 					aNode.href = event.options.url;

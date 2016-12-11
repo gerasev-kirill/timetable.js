@@ -92,21 +92,13 @@ $timetable-entry-padding: 10px !default
 				background-size: $hour-column-width / 4 auto
 			&:after
 				background-size: $hour-column-width auto
-
+		li.section
+			.section-title
+				height: $hour-row-height - 1px
 	.time-entry
 		height: $hour-row-height - 1px
 
 
-.timetable.sm
-	+timetable-size(20px, 60px, 25px)
-
-.timetable.xs
-	+timetable-size(20px, 45px, 22px)
-	.time-label
-		font-size: 0.6em
-	.time-entry
-		small
-			font-size: 0.7em
 
 .timetable
 	box-sizing: border-box
@@ -138,6 +130,8 @@ $timetable-entry-padding: 10px !default
 
 		.row-heading
 			+ellipsis
+		.row-heading-section
+			background: darken($timetable-row-header-color, 15%)
 
 	ul
 		list-style-type: none
@@ -221,6 +215,21 @@ $timetable-entry-padding: 10px !default
 				background-image: linear-gradient(to right, $timetable-grid-color, $timetable-grid-color 1px, $timetable-row-even-color 1px, $timetable-row-even-color 2px, $timetable-grid-color 2px, $timetable-grid-color 3px, transparent 3px, transparent)
 				background-size: $timetable-hour-column-width auto
 				background-position: -2px 0
+		li.section
+			background-color: darken($timetable-row-header-color, 15%)
+			border-bottom: $timetable-legend-row-separator
+			&:after, &::before
+				content: none
+			.section-title
+				height: $timetable-hour-row-height - 1px
+				display: table
+				vertical-align: middle
+				text-align: center
+				width: 100%
+				span
+					display: table-cell
+					vertical-align: middle
+
 	.time-entry
 		background-color: $timetable-entry-color
 		transition: 200ms background-color
@@ -240,3 +249,32 @@ $timetable-entry-padding: 10px !default
 
 		&:hover
 			background-color: $timetable-entry-color-hover
+
+
+
+
+
+.timetable.sm
+	+timetable-size(20px, 60px, 28px)
+	aside
+		margin-top: 28px
+		border-right: 0
+		li
+			height: 28px
+			line-height: 28px
+
+.timetable.xs
+	+timetable-size(20px, 42px, 25px)
+	aside
+		border-right: 0
+		width: 20%
+	section
+		width: 80%
+	.time-label
+		font-size: 0.8em
+	.time-entry
+		padding: 0 2px
+		small
+			font-size: 0.7em
+	.section-title
+		font-size: 0.7em
