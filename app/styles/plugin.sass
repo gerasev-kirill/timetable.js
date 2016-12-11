@@ -57,6 +57,57 @@ $timetable-entry-padding: 10px !default
  * Timetable
  * ==========================================================================
 
+=timetable-size($heading-height, $hour-column-width, $hour-row-height)
+	aside
+		margin-top: $hour-row-height
+		li
+			line-height: $hour-row-height
+
+	aside li, time li
+		height: $hour-row-height
+
+	section
+		width: 75%
+		padding: 0 !important
+		overflow-x: scroll
+		-webkit-overflow-scrolling: touch
+
+		time
+			white-space: nowrap
+			display: inline-block
+
+		header
+			height: $hour-row-height
+			li
+				line-height: $hour-row-height
+				&:not(:last-of-type)
+					width: $hour-column-width
+
+	ul.room-timeline
+		li
+			&:first-child .time-entry
+				height: $hour-row-height - 2px
+
+			&:before
+				background-size: $hour-column-width / 4 auto
+			&:after
+				background-size: $hour-column-width auto
+
+	.time-entry
+		height: $hour-row-height - 1px
+
+
+.timetable.sm
+	+timetable-size(20px, 60px, 25px)
+
+.timetable.xs
+	+timetable-size(20px, 45px, 22px)
+	.time-label
+		font-size: 0.6em
+	.time-entry
+		small
+			font-size: 0.7em
+
 .timetable
 	box-sizing: border-box
 	+clearfix
@@ -189,4 +240,3 @@ $timetable-entry-padding: 10px !default
 
 		&:hover
 			background-color: $timetable-entry-color-hover
-
