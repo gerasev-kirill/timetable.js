@@ -91,10 +91,15 @@ Timetable.Renderer = function(tt) {
 						}
 						loc.locations.forEach(function(loc2){
 							if (!locationExistsIn(loc2, existingLocations)) {
-								existingLocations.push({
-									id: loc2,
-									title: loc2
-								});
+								if (loc2 instanceof Object){
+									existingLocations.push(loc2);
+								}
+								else{
+									existingLocations.push({
+										id: loc2,
+										title: loc2
+									});
+								}
 							} else {
 								throw new Error('Location already exists');
 							}
