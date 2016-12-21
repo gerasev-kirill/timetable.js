@@ -124,7 +124,8 @@ $timetable-entry-padding: 10px !default
 			padding: 0 $timetable-row-header-padding
 			background-color: $timetable-row-header-color
 			line-height: $timetable-hour-row-height
-
+			&.no-border
+				border-color: transparent !important
 			&:not(:last-of-type)
 				border-bottom: $timetable-legend-row-separator
 

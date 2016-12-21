@@ -174,6 +174,9 @@ Timetable.Renderer = function(tt) {
 					if (timetable.locations[k].hasOwnProperty('locations')){
 						liNode.className = 'row-heading-section';
 					}
+					if (timetable.locations[k].hasOwnProperty('class')){
+						liNode.className += timetable.locations[k].class;
+					}
 					liNode.title = timetable.locations[k].title;
 					spanNode.textContent = timetable.locations[k].title;
 				}
