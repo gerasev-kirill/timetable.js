@@ -178,9 +178,11 @@ $timetable-entry-padding: 10px !default
 
 	@media #{$timetable-breakpoint}
 		aside
-			width: 40%
+			width: 40% !important
+			li
+				padding: 0 $timetable-row-header-padding/2
 		section
-			width: 60%
+			width: 60% !important
 
 	ul.room-timeline
 		border-left: none
