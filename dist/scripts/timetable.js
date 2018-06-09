@@ -3,9 +3,19 @@
 'use strict';
 
 var Timetable = function() {
+	function prettyFormatHour(hour) {
+		var prefix = hour < 10 ? '0' : '';
+		return prefix + hour + ':00';
+	}
 	this.scope = {
-		hourStart: 9,
-		hourEnd: 17
+		hourStep: 1,
+		dateFormatter: function(date, isNewDay){
+			if (!isNewDay){
+				return prettyFormatHour(date.getHours());
+			} else {
+				return date.getDate() + '/' + date.getMonth() + ', ' + prettyFormatHour(date.getHours());
+			}
+		}
 	};
 	this.locations = [];
 	this.events = [];
@@ -19,17 +29,15 @@ Timetable.Renderer = function(tt) {
 };
 
 (function() {
-	function isValidHourRange(start, end) {
-		return isValidHour(start) && isValidHour(end);
-	}
-	function isValidHour(number) {
-		return isInt(number) && isInHourRange(number);
-	}
 	function isInt(number) {
 		return number === parseInt(number, 10);
 	}
-	function isInHourRange(number) {
-		return number >= 0 && number < 25;
+	function isDate(date){
+		date = new Date(date);
+		return !isNaN(date.getTime());
+	}
+	function isValidDateRange(start, end){
+		return isDate(start) && isDate(end);
 	}
 	function locationExistsIn(loc, locs) {
 		for (var k=0; k<locs.length; k++) {
@@ -40,24 +48,34 @@ Timetable.Renderer = function(tt) {
 		return false;
 	}
 	function isValidTimeRange(start, end) {
-		var correctTypes = start instanceof Date && end instanceof Date;
+		var correctTypes = isDate(start) && isDate(end);
 		var correctOrder = start < end;
 		return correctTypes && correctOrder;
 	}
-	function getDurationHours(startHour, endHour) {
-		return endHour >= startHour ? endHour - startHour : 25 + endHour - startHour;
+	function toNode(htmlString){
+		var span = document.createElement('span');
+		span.innerHTML = htmlString.trim();
+		return span;
 	}
 
 	Timetable.prototype = {
 		setScope: function(start, end) {
-			if (isValidHourRange(start, end)) {
-				this.scope.hourStart = start;
-				this.scope.hourEnd = end;
-			} else {
-				throw new RangeError('Timetable scope should consist of (start, end) in whole hours from 0 to 24');
+			if (isValidDateRange(start, end)){
+				this.scope.start = new Date(start);
+				this.scope.end = new Date(end);
+			} else{
+				throw new RangeError('Timetable scope should consist of (start, end) in dates');
 			}
-
 			return this;
+		},
+		setHourStep: function(step){
+			if (!isInt(step) || step < 0 || step > 30){
+				throw new Error('Step should be int and more than 0 and less than 30');
+			}
+			this.scope.hourStep = step;
+		},
+		setDateFormatterFunction: function(fn){
+			this.scope.dateFormatter = fn;
 		},
 		addLocations: function(newLocations) {
 			function hasProperFormat() {
@@ -123,6 +141,8 @@ Timetable.Renderer = function(tt) {
 			if (!locationExistsIn(location, this.locations)) {
 				throw new Error('Unknown location');
 			}
+			start = new Date(start);
+			end = new Date(end);
 			if (!isValidTimeRange(start, end)) {
 				console.log('Invalid time range: ' + JSON.stringify([start, end]));
 				return;
@@ -148,13 +168,27 @@ Timetable.Renderer = function(tt) {
 		}
 	}
 
-	function prettyFormatHour(hour) {
-		var prefix = hour < 10 ? '0' : '';
-		return prefix + hour + ':00';
-	}
 
 	Timetable.Renderer.prototype = {
 		draw: function(selector) {
+			var dates = [];
+			this.timetable.events.forEach(function(event){
+				dates.push(event.startDate);
+				dates.push(event.endDate);
+			});
+			var datesAsInt = dates.map(function(d){return d.getTime();});
+			var minDate = this.timetable.scope.start;
+			var maxDate = this.timetable.scope.end;
+			if (!this.timetable.scope.start){
+				var minIndex = datesAsInt.indexOf(Math.min.apply(null, datesAsInt));
+				minDate = dates[minIndex];
+			}
+			if (!this.timetable.scope.end){
+				var maxIndex = datesAsInt.indexOf(Math.max.apply(null, datesAsInt));
+				maxDate = dates[maxIndex];
+			}
+
+
 			function checkContainerPrecondition(container) {
 				if (container === null) {
 					throw new Error('Timetable container not found');
@@ -195,23 +229,21 @@ Timetable.Renderer = function(tt) {
 			function appendColumnHeaders(node) {
 				var headerNode = node.appendChild(document.createElement('header'));
 				var headerULNode = headerNode.appendChild(document.createElement('ul'));
+				var currentDate = new Date(minDate);
+				var liNode, spanNode, lastDay;
 
-				var completed = false;
-				var looped = false;
-
-				for (var hour=timetable.scope.hourStart; !completed;) {
-					var liNode = headerULNode.appendChild(document.createElement('li'));
-					var spanNode = liNode.appendChild(document.createElement('span'));
+				while (currentDate < maxDate) {
+					liNode = headerULNode.appendChild(document.createElement('li'));
+					spanNode = toNode(
+						timetable.scope.dateFormatter(
+							currentDate,
+							currentDate.getDate() !== lastDay
+						)
+					);
 					spanNode.className = 'time-label';
-					spanNode.textContent = prettyFormatHour(hour);
-
-					if (hour === timetable.scope.hourEnd && (timetable.scope.hourStart !== timetable.scope.hourEnd || looped)) {
-						completed = true;
-					}
-					if (++hour === 25) {
-						hour = 0;
-						looped = true;
-					}
+					liNode.appendChild(spanNode);
+					lastDay = currentDate.getDate();
+					currentDate.setHours(currentDate.getHours() + timetable.scope.hourStep);
 				}
 			}
 			function appendTimeRows(node) {
@@ -261,6 +293,8 @@ Timetable.Renderer = function(tt) {
 				if (hasURL) {
 					aNode.href = event.options.url;
 				}
+				aNode.setAttribute('data-start-date', event.startDate);
+				aNode.setAttribute('data-end-date', event.endDate);
 				if(hasDataAttributes){
 					for (var key in event.options.data) {
 						aNode.setAttribute('data-'+key, event.options.data[key]);
@@ -273,23 +307,19 @@ Timetable.Renderer = function(tt) {
 				smallNode.textContent = event.name;
 			}
 			function computeEventBlockWidth(event) {
-				var start = event.startDate;
-				var end = event.endDate;
-				var durationHours = computeDurationInHours(start, end);
+				var durationHours = computeDurationInHours(event.startDate, event.endDate);
 				return durationHours / scopeDurationHours * 100 + '%';
 			}
 			function computeDurationInHours(start, end) {
 				return (end.getTime() - start.getTime()) / 1000 / 60 / 60;
 			}
 			function computeEventBlockOffset(event) {
-				var scopeStartHours = timetable.scope.hourStart;
-				var eventStartHours = event.startDate.getHours() + (event.startDate.getMinutes() / 60);
-				var hoursBeforeEvent =  getDurationHours(scopeStartHours, eventStartHours);
+				var hoursBeforeEvent = computeDurationInHours(minDate, event.startDate);
 				return hoursBeforeEvent / scopeDurationHours * 100 + '%';
 			}
 
 			var timetable = this.timetable;
-			var scopeDurationHours = getDurationHours(timetable.scope.hourStart, timetable.scope.hourEnd);
+			var scopeDurationHours = computeDurationInHours(minDate, maxDate) - 1;
 			var container = document.querySelector(selector);
 			checkContainerPrecondition(container);
 			emptyNode(container);
