@@ -1,6 +1,6 @@
 {
   "name": "timetable.js",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Vanilla javascript plugin for building nice responsive timetables",
   "keywords": [
     "timetable",
@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Grible/timetable.js"
+    "url": "https://github.com/gerasev-kirill/timetable.js"
   },
   "private": false,
   "main": [
