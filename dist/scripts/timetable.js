@@ -36,8 +36,15 @@ Timetable.Renderer = function(tt) {
 		date = new Date(date);
 		return !isNaN(date.getTime());
 	}
+	function isElement(node){
+		// from angular
+		return !!(node && (node.nodeName || (node.prop && node.attr && node.find)));  // We have an on and find method part of jQuery API.
+	}
 	function isValidDateRange(start, end){
 		return isDate(start) && isDate(end);
+	}
+	function computeDurationInHours(start, end) {
+		return (end.getTime() - start.getTime()) / 1000 / 60 / 60;
 	}
 	function locationExistsIn(loc, locs) {
 		for (var k=0; k<locs.length; k++) {
@@ -171,6 +178,7 @@ Timetable.Renderer = function(tt) {
 
 	Timetable.Renderer.prototype = {
 		draw: function(selector) {
+			var timetable = this.timetable;
 			var dates = [];
 			this.timetable.events.forEach(function(event){
 				dates.push(event.startDate);
@@ -186,6 +194,17 @@ Timetable.Renderer = function(tt) {
 			if (!this.timetable.scope.end){
 				var maxIndex = datesAsInt.indexOf(Math.max.apply(null, datesAsInt));
 				maxDate = dates[maxIndex];
+			}
+			if (minDate.getMinutes() !== 0){
+				minDate.setMinutes(0);
+			}
+			var scopeDurationHours = computeDurationInHours(minDate, maxDate);
+			var dstep = scopeDurationHours / timetable.scope.hourStep;
+			if (!isInt(dstep)){
+				// round up maxDate
+				scopeDurationHours = Math.ceil(dstep) * timetable.scope.hourStep;
+				maxDate = new Date(minDate);
+				maxDate.setHours(scopeDurationHours);
 			}
 
 
@@ -231,8 +250,7 @@ Timetable.Renderer = function(tt) {
 				var headerULNode = headerNode.appendChild(document.createElement('ul'));
 				var currentDate = new Date(minDate);
 				var liNode, spanNode, lastDay;
-
-				while (currentDate < maxDate) {
+				while (currentDate.getTime() <= maxDate.getTime()) {
 					liNode = headerULNode.appendChild(document.createElement('li'));
 					spanNode = toNode(
 						timetable.scope.dateFormatter(
@@ -310,17 +328,17 @@ Timetable.Renderer = function(tt) {
 				var durationHours = computeDurationInHours(event.startDate, event.endDate);
 				return durationHours / scopeDurationHours * 100 + '%';
 			}
-			function computeDurationInHours(start, end) {
-				return (end.getTime() - start.getTime()) / 1000 / 60 / 60;
-			}
 			function computeEventBlockOffset(event) {
 				var hoursBeforeEvent = computeDurationInHours(minDate, event.startDate);
 				return hoursBeforeEvent / scopeDurationHours * 100 + '%';
 			}
 
-			var timetable = this.timetable;
-			var scopeDurationHours = computeDurationInHours(minDate, maxDate) - 1;
-			var container = document.querySelector(selector);
+			var container;
+			if (isElement(selector)){
+				container = selector;
+			} else{
+				container = document.querySelector(selector);
+			}
 			checkContainerPrecondition(container);
 			emptyNode(container);
 			appendTimetableAside(container);
