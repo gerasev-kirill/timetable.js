@@ -75,9 +75,12 @@ Timetable.Renderer = function(tt) {
 			}
 			return this;
 		},
+		getScope: function(){
+			return JSON.parse(JSON.stringify(this.scope));
+		},
 		setHourStep: function(step){
-			if (!isInt(step) || step < 0 || step > 30){
-				throw new Error('Step should be int and more than 0 and less than 30');
+			if (!isInt(step) || step < 0){
+				throw new Error('Step should be int and more than 0');
 			}
 			this.scope.hourStep = step;
 		},
@@ -206,6 +209,7 @@ Timetable.Renderer = function(tt) {
 				maxDate = new Date(minDate);
 				maxDate.setHours(scopeDurationHours);
 			}
+			this.timetable.scope.durationHours = scopeDurationHours;
 
 
 			function checkContainerPrecondition(container) {
