@@ -249,6 +249,13 @@ $timetable-entry-padding: 10px !default
 		small
 			+valign-middle
 			display: block
+		.time-entry-template-content
+			display: table
+			height: 100%
+			width: 100%
+			.time-entry-template-content-inner
+				display: table-cell
+				vertical-align: middle
 
 		&:hover
 			background-color: $timetable-entry-color-hover
@@ -293,7 +300,6 @@ $timetable-entry-padding: 10px !default
 				height: auto
 				position: absolute
 				z-index: 3
-				//padding-top: $timetable-heading-height / 2
 				ul
 					display: block
 					li
@@ -302,7 +308,6 @@ $timetable-entry-padding: 10px !default
 						text-align: right
 						padding-right: $timetable-hour-column-width / 9
 						.time-label
-							//transform: translateY(-50%)
 							transform: none
 							position: initial
 
@@ -331,7 +336,6 @@ $timetable-entry-padding: 10px !default
 
 				.time-entry
 					width: 100%
-
 
 
 .td-column, .th-column

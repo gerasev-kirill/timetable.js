@@ -297,7 +297,7 @@ Timetable.Renderer = function(tt) {
 						span.textContent = timetable.locations[k].title;
 						continue;
 					}
-					appendLocationEvents(timetable.locations[k], liNode);/**/
+					appendLocationEvents(timetable.locations[k], liNode);
 				}
 				return node;
 			}
@@ -321,12 +321,11 @@ Timetable.Renderer = function(tt) {
 
 				var elementType = hasURL ? 'a' : 'span';
 				var aNode = node.appendChild(document.createElement(elementType));
-				var smallNode = aNode.appendChild(document.createElement('small'));
 				if (hasOptions){
-					aNode.title = event.options.tooltip || event.name;
+					aNode.title = event.options.tooltip || event.name || '';
 				}
 				else{
-					aNode.title = event.name;
+					aNode.title = event.name || '';
 				}
 
 				if (hasURL) {
@@ -353,7 +352,20 @@ Timetable.Renderer = function(tt) {
 					aNode.style.width = computeEventBlockWidth(event) + '%';
 					aNode.style.left = computeEventBlockOffset(event) + '%';
 				}
-				smallNode.textContent = event.name;
+
+				if (hasOptions && event.options.template){
+					// template inside event
+					var wrapper = document.createElement('span');
+					wrapper.className = 'time-entry-template-content';
+					var inner = wrapper.appendChild(document.createElement('span'));
+					inner.className = 'time-entry-template-content-inner';
+					inner.innerHTML = (event.options.template + '').trim();
+					aNode.appendChild(wrapper);
+				} else {
+					// regular text
+					var smallNode = aNode.appendChild(document.createElement('small'));
+					smallNode.textContent = event.name;
+				}
 			}
 			function computeEventBlockWidth(event) {
 				var durationHours = computeDurationInHours(event.startDate, event.endDate);
