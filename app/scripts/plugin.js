@@ -180,7 +180,7 @@ Timetable.Renderer = function(tt) {
 
 
 	Timetable.Renderer.prototype = {
-		draw: function(selector) {
+		draw: function(selector, tableStyle) {
 			var timetable = this.timetable;
 			var dates = [];
 			this.timetable.events.forEach(function(event){
@@ -190,6 +190,9 @@ Timetable.Renderer = function(tt) {
 			var datesAsInt = dates.map(function(d){return d.getTime();});
 			var minDate = this.timetable.scope.start;
 			var maxDate = this.timetable.scope.end;
+			if (['vertical', 'horizontal'].indexOf(tableStyle) === -1){
+				tableStyle = 'horizontal';
+			}
 			if (!this.timetable.scope.start){
 				var minIndex = datesAsInt.indexOf(Math.min.apply(null, datesAsInt));
 				minDate = dates[minIndex];
@@ -227,6 +230,9 @@ Timetable.Renderer = function(tt) {
 					var url = timetable.locations[k].href;
 					var liNode = ulNode.appendChild(document.createElement('li'));
 					var spanNode = liNode.appendChild(document.createElement('span'));
+					if (tableStyle === 'vertical'){
+						liNode.className = 'th-column';
+					}
 					if (url !== undefined) {
 						var aNode = liNode.appendChild(document.createElement('a'));
 						aNode.href = timetable.locations[k].href;
@@ -246,8 +252,8 @@ Timetable.Renderer = function(tt) {
 			function appendTimetableSection(container) {
 				var sectionNode = container.appendChild(document.createElement('section'));
 				var timeNode = sectionNode.appendChild(document.createElement('time'));
-				appendColumnHeaders(timeNode);
-				appendTimeRows(timeNode);
+				var headerheight = appendColumnHeaders(timeNode);
+				return appendTimeRows(timeNode, headerheight);
 			}
 			function appendColumnHeaders(node) {
 				var headerNode = node.appendChild(document.createElement('header'));
@@ -267,14 +273,24 @@ Timetable.Renderer = function(tt) {
 					lastDay = currentDate.getDate();
 					currentDate.setHours(currentDate.getHours() + timetable.scope.hourStep);
 				}
+				return (headerNode.getBoundingClientRect().height || 0) - (liNode.getBoundingClientRect().height || 0);
 			}
-			function appendTimeRows(node) {
+			function appendTimeRows(node, headerheight) {
+				if (tableStyle === 'vertical'){
+					node = node.appendChild(document.createElement('div'));
+					node.className = 'room-timeline-vertical-container';
+					node = node.appendChild(document.createElement('div'));
+				}
 				var ulNode = node.appendChild(document.createElement('ul'));
 				ulNode.className = 'room-timeline';
 				for (var k=0; k<timetable.locations.length; k++) {
 					var liNode = ulNode.appendChild(document.createElement('li'));
+					if (tableStyle === 'vertical' && headerheight && headerheight > 0){
+						liNode.style.height = headerheight + 'px';
+						liNode.className = 'td-column';
+					}
 					if (timetable.locations[k].hasOwnProperty('locations')){
-						liNode.className = 'section';
+						liNode.className = (liNode.className || '') + ' section';
 						var b = liNode.appendChild(document.createElement('b'));
 						b.className = 'section-title';
 						var span = b.appendChild(document.createElement('span'));
@@ -283,6 +299,7 @@ Timetable.Renderer = function(tt) {
 					}
 					appendLocationEvents(timetable.locations[k], liNode);/**/
 				}
+				return node;
 			}
 			function appendLocationEvents(location, node) {
 				for (var k=0; k<timetable.events.length; k++) {
@@ -324,17 +341,27 @@ Timetable.Renderer = function(tt) {
 				}
 
 				aNode.className = hasAdditionalClass ? 'time-entry ' + event.options.class : 'time-entry';
-				aNode.style.width = computeEventBlockWidth(event);
-				aNode.style.left = computeEventBlockOffset(event);
+				if (tableStyle === 'vertical'){
+					var height = computeEventBlockWidth(event);
+					var top = computeEventBlockOffset(event);
+					if (top + height > 100){
+						height = 100 - top;
+					}
+					aNode.style.height = height + '%';
+					aNode.style.top = top + '%';
+				} else {
+					aNode.style.width = computeEventBlockWidth(event) + '%';
+					aNode.style.left = computeEventBlockOffset(event) + '%';
+				}
 				smallNode.textContent = event.name;
 			}
 			function computeEventBlockWidth(event) {
 				var durationHours = computeDurationInHours(event.startDate, event.endDate);
-				return durationHours / scopeDurationHours * 100 + '%';
+				return durationHours / scopeDurationHours * 100;
 			}
 			function computeEventBlockOffset(event) {
 				var hoursBeforeEvent = computeDurationInHours(minDate, event.startDate);
-				return hoursBeforeEvent / scopeDurationHours * 100 + '%';
+				return hoursBeforeEvent / scopeDurationHours * 100;
 			}
 
 			var container;

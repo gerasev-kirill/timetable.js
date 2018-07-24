@@ -16,6 +16,7 @@
     </div>
 
     <div class="timetable"></div>
+    <div class="timetable vertical"></div>
 
     <script src="scripts/timetable.js"></script>
 
@@ -65,6 +66,7 @@
       */
       var renderer = new Timetable.Renderer(timetable);
       renderer.draw('.timetable');
+      renderer.draw('.timetable.vertical', 'vertical');
     </script>
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
