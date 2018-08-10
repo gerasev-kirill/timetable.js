@@ -346,6 +346,10 @@ Timetable.Renderer = function(tt) {
 					if (top + height > 100){
 						height = 100 - top;
 					}
+					if (top < 0){
+						height = height + top;
+						top = 0;
+					}
 					aNode.style.height = height + '%';
 					aNode.style.top = top + '%';
 				} else {

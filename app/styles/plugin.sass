@@ -117,7 +117,7 @@ $timetable-entry-padding: 10px !default
 
 	aside
 		width: 25%
-		padding: 0 !important
+		padding: 0
 		margin-top: $timetable-hour-row-height
 		border-right: $timetable-row-header-gap
 		li
@@ -265,17 +265,24 @@ $timetable-entry-padding: 10px !default
 .timetable.vertical
 	width: 100%
 	height: 100%
-	overflow: auto
+	overflow: hidden
+	.aside-container
+		padding-left: $timetable-hour-column-width !important
 	aside
 		width: 100%
 		margin-top: 0
 		border-right: 0
-		padding-left: $timetable-hour-column-width !important
+		position: relative
+		overflow: hidden
 		float: none
+		// hide empty space left from scrollbars
+		background: linear-gradient(to right, transparent, transparent, transparent, $timetable-row-header-color, $timetable-row-header-color)
 		ul
 			display: table
 			table-layout: fixed
 			width: 100%
+			position: relative
+			overflow: hidden
 			li
 				display: table-cell
 				height: 100%
@@ -286,13 +293,14 @@ $timetable-entry-padding: 10px !default
 					border-right: $timetable-legend-row-separator
 	section
 		width: 100%
-		display: table
+		display: block
 		overflow: hidden
+		float: none
 		time
 			width: 100%
 			box-sizing: border-box
 			overflow: hidden
-			display: table
+			position: relative
 			header
 				float: none
 				display: table-cell
@@ -301,6 +309,7 @@ $timetable-entry-padding: 10px !default
 				position: absolute
 				z-index: 3
 				ul
+					position: relative
 					display: block
 					li
 						width: $timetable-hour-column-width
@@ -312,10 +321,13 @@ $timetable-entry-padding: 10px !default
 							position: initial
 
 		.room-timeline-vertical-container
-			display: table-cell
-			position: relative
-			vertical-align: top
-			padding-left: $timetable-hour-column-width
+			margin-left: $timetable-hour-column-width
+			& > div
+				position: relative
+				vertical-align: top
+				overflow: auto
+				height: 100%
+				width: 100%
 		ul.room-timeline
 			display: table
 			table-layout: fixed
