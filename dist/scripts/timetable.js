@@ -40,6 +40,9 @@ Timetable.Renderer = function(tt) {
 		// from angular
 		return !!(node && (node.nodeName || (node.prop && node.attr && node.find)));  // We have an on and find method part of jQuery API.
 	}
+	function isFunction(value){
+		return typeof value === 'function';
+	}
 	function isValidDateRange(start, end){
 		return isDate(start) && isDate(end);
 	}
@@ -63,6 +66,35 @@ Timetable.Renderer = function(tt) {
 		var span = document.createElement('span');
 		span.innerHTML = htmlString.trim();
 		return span;
+	}
+	function mkSyncScroll(mainNode, secondaryNode, scrollType){
+		mainNode.addEventListener('scroll', function(){
+			if (scrollType === 'vertical'){
+				secondaryNode.style.top = (mainNode.scrollTop * -1) + 'px';
+			} else {
+				secondaryNode.style.left = (mainNode.scrollLeft * -1) + 'px';
+			}
+		});
+	}
+	function getScrollbarWidth() {
+		var outer = document.createElement('div');
+		outer.style.visibility = 'hidden';
+		outer.style.width = '100px';
+		outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+
+		document.body.appendChild(outer);
+
+		var widthNoScroll = outer.offsetWidth;
+		// force scrollbars
+		outer.style.overflow = 'scroll';
+		// add innerdiv
+		var inner = document.createElement('div');
+		inner.style.width = '100%';
+		outer.appendChild(inner);
+		var widthWithScroll = inner.offsetWidth;
+		// remove divs
+		outer.parentNode.removeChild(outer);
+		return widthNoScroll - widthWithScroll;
 	}
 
 	Timetable.prototype = {
@@ -221,7 +253,15 @@ Timetable.Renderer = function(tt) {
 				}
 			}
 			function appendTimetableAside(container) {
-				var asideNode = container.appendChild(document.createElement('aside'));
+				var asideNode;
+				if (tableStyle === 'vertical'){
+					var asideNodeContainer = document.createElement('div');
+					asideNodeContainer.className = 'aside-container';
+					asideNode = asideNodeContainer.appendChild(document.createElement('aside'));
+					container.appendChild(asideNodeContainer);
+				} else {
+					asideNode = container.appendChild(document.createElement('aside'));
+				}
 				var asideULNode = asideNode.appendChild(document.createElement('ul'));
 				appendRowHeaders(asideULNode);
 			}
@@ -323,6 +363,12 @@ Timetable.Renderer = function(tt) {
 				var aNode = node.appendChild(document.createElement(elementType));
 				if (hasOptions){
 					aNode.title = event.options.tooltip || event.name || '';
+					//- add click callback
+					if (isFunction(event.options.onClick)){
+						aNode.addEventListener('click', function(){
+							event.options.onClick(aNode, event);
+						});
+					}
 				}
 				else{
 					aNode.title = event.name || '';
@@ -390,6 +436,30 @@ Timetable.Renderer = function(tt) {
 			emptyNode(container);
 			appendTimetableAside(container);
 			appendTimetableSection(container);
+			if (tableStyle === 'vertical'){
+				var topHeader = container.querySelector('aside > ul');
+				var leftHeader = container.querySelector('section > time > header > ul');
+				var tableContent = container.querySelector('.room-timeline-vertical-container > div');
+				var scrollbarWidth = getScrollbarWidth() - 1;
+				var onResize = function(){
+					if (document.body.contains && !document.body.contains(container)){
+						//- user removed table
+						window.removeEventListener('resize', onResize);
+						return;
+					}
+					tableContent.style.height = (container.offsetHeight - topHeader.offsetHeight) + 'px';
+					var hasVerticalScrollbar = tableContent.clientHeight < tableContent.querySelector('ul.room-timeline').clientHeight;
+					if (hasVerticalScrollbar){
+						topHeader.parentNode.style.paddingRight = scrollbarWidth + 'px';
+					} else {
+						topHeader.parentNode.style.paddingRight = '0px';
+					}
+				};
+				mkSyncScroll(tableContent, topHeader, 'horizontal');
+				mkSyncScroll(tableContent, leftHeader, 'vertical');
+				onResize();
+				window.addEventListener('resize', onResize);
+			}
 		}
 	};
 
