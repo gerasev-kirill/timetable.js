@@ -286,7 +286,8 @@ Timetable.Renderer = function(tt) {
 						liNode.className += timetable.locations[k].class;
 					}
 					liNode.title = timetable.locations[k].title;
-					spanNode.textContent = timetable.locations[k].title;
+					spanNode.innerHTML = (timetable.locations[k].title + '').trim();
+					//spanNode.textContent = timetable.locations[k].title;
 				}
 			}
 			function appendTimetableSection(container) {
