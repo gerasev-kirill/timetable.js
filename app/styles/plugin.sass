@@ -8,7 +8,9 @@
 // dimensions
 $timetable-hour-column-width: 96px !default
 $timetable-hour-row-height: 46px !default
-$timetable-heading-height: 30px !default
+// extra padding for text in header
+$timetable-vertical-body-top-bottom-padding: 10px
+
 $timetable-breakpoint: "only screen and (max-width: 960px)" !default
 // colors & decoration
 $timetable-grid-color: #E5E5E5 !default
@@ -57,7 +59,7 @@ $timetable-entry-padding: 10px !default
  * Timetable
  * ==========================================================================
 
-=timetable-size($heading-height, $hour-column-width, $hour-row-height)
+=timetable-size($hour-column-width, $hour-row-height, $vertical-hour-column-width, $vertical-hour-row-height)
 	aside
 		margin-top: $hour-row-height
 		li
@@ -67,15 +69,6 @@ $timetable-entry-padding: 10px !default
 		height: $hour-row-height
 
 	section
-		width: 75%
-		padding: 0 !important
-		overflow-x: scroll
-		-webkit-overflow-scrolling: touch
-
-		time
-			white-space: nowrap
-			display: inline-block
-
 		header
 			height: $hour-row-height
 			li
@@ -87,7 +80,6 @@ $timetable-entry-padding: 10px !default
 		li
 			&:first-child .time-entry
 				height: $hour-row-height - 2px
-
 			&:before
 				background-size: $hour-column-width / 4 auto
 			&:after
@@ -95,8 +87,44 @@ $timetable-entry-padding: 10px !default
 		li.section
 			.section-title
 				height: $hour-row-height - 1px
+
 	.time-entry
 		height: $hour-row-height - 1px
+
+	&.vertical
+		.aside-container
+			padding-left: $vertical-hour-column-width !important
+		aside
+			margin-top: 0
+
+		section
+			time
+				header
+					width: $vertical-hour-column-width
+					margin-top: $timetable-vertical-body-top-bottom-padding - $vertical-hour-row-height/2
+					ul
+						li
+							height: $vertical-hour-row-height
+							line-height: $vertical-hour-row-height
+							width: $vertical-hour-column-width
+							padding-right: $vertical-hour-column-width / 9
+							&:first-of-type
+								height: $vertical-hour-row-height
+								line-height: $vertical-hour-row-height
+
+			.room-timeline-vertical-container
+				margin-left: $vertical-hour-column-width
+			ul.room-timeline
+				li
+					&:before
+						background-size: auto $vertical-hour-row-height / 4
+					&:after
+						background-size: auto $vertical-hour-row-height
+
+
+
+
+
 
 
 
@@ -266,8 +294,9 @@ $timetable-entry-padding: 10px !default
 	width: 100%
 	height: 100%
 	overflow: hidden
+	$aside-width: $timetable-hour-column-width - 8px
 	.aside-container
-		padding-left: $timetable-hour-column-width !important
+		padding-left: $aside-width !important
 	aside
 		width: 100%
 		margin-top: 0
@@ -304,24 +333,25 @@ $timetable-entry-padding: 10px !default
 			header
 				float: none
 				display: table-cell
-				width: $timetable-hour-column-width
+				width: $aside-width
 				height: auto
 				position: absolute
 				z-index: 3
+				margin-top: $timetable-vertical-body-top-bottom-padding - $timetable-hour-row-height/2
 				ul
 					position: relative
 					display: block
 					li
-						width: $timetable-hour-column-width
+						width: $aside-width
 						display: block
 						text-align: right
-						padding-right: $timetable-hour-column-width / 9
+						padding-right: $aside-width / 9
 						.time-label
 							transform: none
 							position: initial
 
 		.room-timeline-vertical-container
-			margin-left: $timetable-hour-column-width
+			margin-left: $aside-width
 			& > div
 				position: relative
 				vertical-align: top
@@ -333,8 +363,8 @@ $timetable-entry-padding: 10px !default
 			table-layout: fixed
 			width: 100%
 			position: initial
-			padding-top: $timetable-hour-row-height / 2
-			padding-bottom: $timetable-hour-row-height / 2
+			padding-top: $timetable-vertical-body-top-bottom-padding
+			padding-bottom: $timetable-vertical-body-top-bottom-padding
 			li
 				display: table-cell
 				border-top: 0
@@ -353,27 +383,34 @@ $timetable-entry-padding: 10px !default
 .td-column, .th-column
 	width: 500px
 
+
+.timetable.lg
+	+timetable-size($timetable-hour-column-width + 20px, $timetable-hour-row-height, $timetable-hour-column-width - 5px, $timetable-hour-row-height + 25px)
+
+
 .timetable.sm
-	+timetable-size(20px, 60px, 28px)
-	aside
-		margin-top: 28px
-		border-right: 0
-		li
-			height: 28px
-			line-height: 28px
+	+timetable-size(60px, 28px, $timetable-hour-column-width - 15px, $timetable-hour-row-height - 5px)
+	&:not(.vertical)
+		aside
+			margin-top: 28px
+			border-right: 0
+			li
+				height: 28px
+				line-height: 28px
 
 .timetable.xs
-	+timetable-size(20px, 42px, 25px)
-	aside
-		border-right: 0
-		width: 20%
-	section
-		width: 80%
-	.time-label
-		font-size: 0.8em
-	.time-entry
-		padding: 0 2px
-		small
+	+timetable-size(42px, 25px, $timetable-hour-column-width - 15px, $timetable-hour-row-height - 10px)
+	&:not(.vertical)
+		aside
+			border-right: 0
+			width: 20%
+		section
+			width: 80%
+		.time-label
+			font-size: 0.8em
+		.time-entry
+			padding: 0 2px
+			small
+				font-size: 0.7em
+		.section-title
 			font-size: 0.7em
-	.section-title
-		font-size: 0.7em
