@@ -366,8 +366,8 @@ Timetable.Renderer = function(tt) {
 					aNode.title = event.options.tooltip || event.name || '';
 					//- add click callback
 					if (isFunction(event.options.onClick)){
-						aNode.addEventListener('click', function(){
-							event.options.onClick(aNode, event);
+						aNode.addEventListener('click', function(mouseEvent){
+							event.options.onClick(aNode, event, mouseEvent);
 						});
 					}
 				}
